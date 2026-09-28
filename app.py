@@ -3,10 +3,10 @@ import streamlit as st
 import pandas as pd
 
 # --------------------------------------------------
-# Page configuration
+# Page Configuration
 # --------------------------------------------------
 st.set_page_config(
-    page_title="Task 8 - Query Accuracy Evaluation",
+    page_title="Task 8 - Grid Assistant Evaluation",
     page_icon="⚡",
     layout="wide"
 )
@@ -18,125 +18,183 @@ st.title("⚡ Query Accuracy & Forecast Explanation Evaluation")
 
 st.write(
     "Ask natural-language questions about power consumption, "
-    "forecasting, voltage, frequency, and grid status."
+    "forecasting, voltage, current, frequency, and grid status."
 )
 
 # --------------------------------------------------
-# Load data
+# Load CSV
 # --------------------------------------------------
 @st.cache_data
 def load_data():
-    return pd.read_csv("grid_data.csv")
+    data = pd.read_csv("grid_data.csv")
+    return data
 
 
 df = load_data()
 
+# Clean column names
+df.columns = df.columns.str.strip()
+
 # --------------------------------------------------
-# Natural-language query
+# Natural Language Query
 # --------------------------------------------------
-st.subheader("💬 Ask Your Question")
+st.subheader("💬 Natural-Language Query")
 
 query = st.text_input(
     "Enter your question:",
-    placeholder="Example: What is the predicted peak consumption?"
+    placeholder="Example: What is the grid frequency?"
 )
 
+
 # --------------------------------------------------
-# Query processing
+# Process Query
 # --------------------------------------------------
 def process_query(query):
 
     q = query.lower().strip()
 
-    # Forecast - predicted peak
-    if "predicted peak" in q:
+    # ==============================================
+    # FORECAST QUERIES
+    # ==============================================
+
+    if (
+        "predicted peak" in q
+        or "forecast peak" in q
+        or "peak forecast" in q
+    ):
         return (
             "Predicted peak consumption is 699.31 MW.",
-            "The query was identified as a forecast peak query.",
+            "The system identified the query as a predicted peak "
+            "forecast question.",
             "PASS"
         )
 
-    # Forecast - predicted average
-    elif "predicted average" in q or "average predicted" in q:
+    if (
+        "predicted average" in q
+        or "forecast average" in q
+        or "average forecast" in q
+    ):
         return (
             "Predicted average consumption is 587.13 MW.",
-            "The query was identified as a forecast average query.",
+            "The system identified the query as a predicted average "
+            "forecast question.",
             "PASS"
         )
 
-    # Historical peak power
-    elif (
+    # ==============================================
+    # POWER CONSUMPTION
+    # ==============================================
+
+    if (
         "peak power" in q
         or "highest power" in q
         or "maximum power" in q
+        or "peak consumption" in q
     ):
+
         value = df["power_consumption"].max()
 
         return (
             f"Peak power consumption is {value:.2f} MW.",
-            "The system calculated the highest power consumption "
+            "The system found the maximum power consumption "
             "from the grid telemetry data.",
             "PASS"
         )
 
-    # Average power
-    elif (
+    if (
         "average power" in q
         or "average consumption" in q
     ):
+
         value = df["power_consumption"].mean()
 
         return (
             f"The average power consumption is {value:.2f} MW.",
             "The system calculated the average power consumption "
-            "from the grid telemetry data.",
+            "from the telemetry dataset.",
             "PASS"
         )
 
-    # Lowest power
-    elif (
+    if (
         "lowest power" in q
         or "minimum power" in q
         or "lowest consumption" in q
     ):
+
         value = df["power_consumption"].min()
 
         return (
             f"The lowest power consumption is {value:.2f} MW.",
-            "The system calculated the minimum power consumption "
-            "from the grid telemetry data.",
+            "The system found the minimum power consumption "
+            "from the telemetry dataset.",
             "PASS"
         )
 
-    # Voltage
-    elif "voltage" in q:
+    # ==============================================
+    # VOLTAGE
+    # ==============================================
+
+    if (
+        "voltage" in q
+        or "volt" in q
+    ):
 
         value = df["voltage"].mean()
 
         return (
             f"The average voltage is {value:.2f} V.",
             "The system calculated the average voltage "
-            "from the grid telemetry data.",
+            "from the telemetry dataset.",
             "PASS"
         )
 
-    # Frequency
-    elif "frequency" in q or "freq" in q:
+    # ==============================================
+    # CURRENT
+    # ==============================================
+
+    if (
+        "current" in q
+        or "ampere" in q
+        or "amps" in q
+    ):
+
+        value = df["current"].mean()
+
+        return (
+            f"The average current is {value:.2f} A.",
+            "The system calculated the average current "
+            "from the telemetry dataset.",
+            "PASS"
+        )
+
+    # ==============================================
+    # FREQUENCY
+    # ==============================================
+
+    if (
+        "frequency" in q
+        or "freq" in q
+        or "hz" in q
+    ):
 
         value = df["frequency"].mean()
 
         return (
             f"The average grid frequency is {value:.2f} Hz.",
-            "The system calculated the average frequency "
-            "from the grid telemetry data.",
+            "The system calculated the average grid frequency "
+            "from the telemetry dataset.",
             "PASS"
         )
 
-    # Grid status
-    elif (
+    # ==============================================
+    # GRID STATUS
+    # ==============================================
+
+    if (
         "grid status" in q
         or "grid condition" in q
         or "status" in q
+        or "condition" in q
     ):
 
         value = df["status"].iloc[-1]
@@ -144,12 +202,15 @@ def process_query(query):
         return (
             f"The latest grid status is {value}.",
             "The system retrieved the latest grid status "
-            "from the telemetry data.",
+            "from the telemetry dataset.",
             "PASS"
         )
 
-    # Latest/current power
-    elif (
+    # ==============================================
+    # LATEST POWER
+    # ==============================================
+
+    if (
         "current power" in q
         or "latest power" in q
         or "current consumption" in q
@@ -161,37 +222,39 @@ def process_query(query):
         return (
             f"The latest power consumption is {value:.2f} MW.",
             "The system retrieved the latest power consumption "
-            "record from the telemetry data.",
+            "record from the telemetry dataset.",
             "PASS"
         )
 
-    # Unsupported question
-    else:
+    # ==============================================
+    # UNKNOWN QUERY
+    # ==============================================
 
-        return (
-            "I could not identify that question. "
-            "Please ask about power consumption, forecast, "
-            "voltage, frequency, or grid status.",
-            "The question did not match a supported query category.",
-            "FAIL"
-        )
+    return (
+        "I could not identify that question. "
+        "Please ask about power consumption, voltage, "
+        "current, frequency, grid status, or forecasting.",
+        "The question did not match one of the supported "
+        "telemetry or forecasting categories.",
+        "FAIL"
+    )
 
 
 # --------------------------------------------------
-# Display result
+# Display Answer
 # --------------------------------------------------
 if query:
 
     answer, explanation, result = process_query(query)
 
-    st.subheader("🤖 Response")
+    st.subheader("🤖 System Response")
 
     if result == "PASS":
         st.success(answer)
     else:
         st.error(answer)
 
-    st.subheader("📖 Explanation")
+    st.subheader("📖 Forecast / Query Explanation")
 
     st.info(explanation)
 
@@ -204,57 +267,18 @@ if query:
 
 
 # --------------------------------------------------
-# Supported questions
+# Supported Questions
 # --------------------------------------------------
-st.subheader("🧪 Supported Questions")
+st.subheader("🧪 Supported Test Questions")
 
-st.write("• What is the predicted peak consumption?")
-st.write("• What is the predicted average consumption?")
-st.write("• What is the peak power consumption?")
-st.write("• What is the average power consumption?")
-st.write("• What is the lowest power consumption?")
-st.write("• What is the average voltage?")
-st.write("• What is the grid frequency?")
-st.write("• What is the current grid status?")
-st.write("• What is the current power consumption?")
+st.write("1. What is the predicted peak consumption?")
+st.write("2. What is the predicted average consumption?")
+st.write("3. What is the peak power consumption?")
+st.write("4. What is the average power consumption?")
+st.write("5. What is the lowest power consumption?")
+st.write("6. What is the average voltage?")
+st.write("7. What is the average current?")
+st.write("8. What is the grid frequency?")
+st.write("9. What is the current grid status?")
+st.write("10. What is the latest power consumption?")
 ```
-
-### Now do only these 3 things
-
-**1. Save `app.py`.**
-
-**2. Upload this updated `app.py` to your Task-8 GitHub repository**, replacing the old one.
-
-**3. Let your online Streamlit deployment update/redeploy.**
-
-Then test these exact questions:
-
-```text
-What is the predicted peak consumption?
-```
-
-```text
-What is the predicted average consumption?
-```
-
-```text
-What is the peak power consumption?
-```
-
-and then:
-
-```text
-What is the grid frequency?
-```
-
-```text
-What is the average voltage?
-```
-
-```text
-What is the current grid status?
-```
-
-All six should now return an answer **as long as `grid_data.csv` contains the columns `power_consumption`, `voltage`, `frequency`, and `status`**.
-
-**Most important:** You don't need to search for or create a telemetry table manually. The Python code reads the CSV directly.
