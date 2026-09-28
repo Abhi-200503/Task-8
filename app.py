@@ -2,18 +2,12 @@
 import streamlit as st
 import pandas as pd
 
-# ---------------------------------------------------------
-# Page Configuration
-# ---------------------------------------------------------
 st.set_page_config(
     page_title="Task 8 - Query Accuracy Evaluation",
     page_icon="⚡",
     layout="wide"
 )
 
-# ---------------------------------------------------------
-# Title
-# ---------------------------------------------------------
 st.title("⚡ Query Accuracy & Forecast Explanation Evaluation")
 
 st.write(
@@ -21,9 +15,6 @@ st.write(
     "telemetry queries and the quality of forecast explanations."
 )
 
-# ---------------------------------------------------------
-# Load Grid Data
-# ---------------------------------------------------------
 @st.cache_data
 def load_data():
     return pd.read_csv("grid_data.csv")
@@ -31,9 +22,6 @@ def load_data():
 
 df = load_data()
 
-# ---------------------------------------------------------
-# Display Data
-# ---------------------------------------------------------
 st.subheader("📊 Grid Telemetry Data")
 
 st.dataframe(
@@ -41,9 +29,6 @@ st.dataframe(
     use_container_width=True
 )
 
-# ---------------------------------------------------------
-# Query Input
-# ---------------------------------------------------------
 st.subheader("💬 Natural-Language Query")
 
 query = st.text_input(
@@ -51,16 +36,11 @@ query = st.text_input(
     placeholder="Example: What is the predicted peak consumption?"
 )
 
-# ---------------------------------------------------------
-# Query Processing Function
-# ---------------------------------------------------------
+
 def process_query(query):
 
     q = query.lower().strip()
 
-    # -----------------------------------------------------
-    # Predicted Peak Consumption
-    # -----------------------------------------------------
     if "predicted peak" in q:
 
         return (
@@ -70,13 +50,7 @@ def process_query(query):
             "PASS"
         )
 
-    # -----------------------------------------------------
-    # Predicted Average Consumption
-    # -----------------------------------------------------
-    elif (
-        "predicted average" in q
-        or "average predicted" in q
-    ):
+    elif "predicted average" in q or "average predicted" in q:
 
         return (
             "Predicted average consumption is 587.13 MW.",
@@ -85,15 +59,7 @@ def process_query(query):
             "PASS"
         )
 
-    # -----------------------------------------------------
-    # Peak Power Consumption
-    # -----------------------------------------------------
-    elif (
-        "peak power" in q
-        or "highest power" in q
-        or "maximum power" in q
-        or "peak consumption" in q
-    ):
+    elif "peak power" in q or "highest power" in q:
 
         return (
             "Peak power consumption is 818.59 MW.",
@@ -102,13 +68,7 @@ def process_query(query):
             "PASS"
         )
 
-    # -----------------------------------------------------
-    # Average Power Consumption
-    # -----------------------------------------------------
-    elif (
-        "average power" in q
-        or "average consumption" in q
-    ):
+    elif "average power" in q or "average consumption" in q:
 
         value = df["power_consumption"].mean()
 
@@ -119,14 +79,7 @@ def process_query(query):
             "PASS"
         )
 
-    # -----------------------------------------------------
-    # Lowest Power Consumption
-    # -----------------------------------------------------
-    elif (
-        "lowest power" in q
-        or "minimum power" in q
-        or "lowest consumption" in q
-    ):
+    elif "lowest power" in q or "minimum power" in q:
 
         value = df["power_consumption"].min()
 
@@ -137,13 +90,7 @@ def process_query(query):
             "PASS"
         )
 
-    # -----------------------------------------------------
-    # Average Voltage
-    # -----------------------------------------------------
-    elif (
-        "average voltage" in q
-        or "voltage" in q
-    ):
+    elif "voltage" in q:
 
         value = df["voltage"].mean()
 
@@ -154,13 +101,7 @@ def process_query(query):
             "PASS"
         )
 
-    # -----------------------------------------------------
-    # Frequency
-    # -----------------------------------------------------
-    elif (
-        "frequency" in q
-        or "grid frequency" in q
-    ):
+    elif "frequency" in q:
 
         value = df["frequency"].mean()
 
@@ -171,14 +112,7 @@ def process_query(query):
             "PASS"
         )
 
-    # -----------------------------------------------------
-    # Grid Status
-    # -----------------------------------------------------
-    elif (
-        "status" in q
-        or "grid condition" in q
-        or "grid state" in q
-    ):
+    elif "status" in q or "grid condition" in q:
 
         latest_status = df["status"].iloc[-1]
 
@@ -189,59 +123,18 @@ def process_query(query):
             "PASS"
         )
 
-    # -----------------------------------------------------
-    # Current Power Consumption
-    # -----------------------------------------------------
-    elif (
-        "current power" in q
-        or "latest power" in q
-        or "latest consumption" in q
-    ):
-
-        latest_power = df["power_consumption"].iloc[-1]
-
-        return (
-            f"The latest recorded power consumption is "
-            f"{latest_power:.2f} MW.",
-            "The system retrieved the latest power consumption "
-            "record from the telemetry dataset.",
-            "PASS"
-        )
-
-    # -----------------------------------------------------
-    # Help
-    # -----------------------------------------------------
-    elif (
-        "help" in q
-        or "what can you ask" in q
-        or "what can you do" in q
-    ):
-
-        return (
-            "I can answer questions about power consumption, "
-            "forecast values, voltage, frequency, and grid status.",
-            "The system provided information about the supported "
-            "natural-language query categories.",
-            "PASS"
-        )
-
-    # -----------------------------------------------------
-    # Unsupported Query
-    # -----------------------------------------------------
     else:
 
         return (
             "I could not identify that question. "
-            "Please try a supported telemetry query.",
+            "Try asking about predicted peak, predicted average, "
+            "peak power, voltage, frequency, or grid status.",
             "The query did not match any of the supported "
             "query patterns.",
             "FAIL"
         )
 
 
-# ---------------------------------------------------------
-# Display Result
-# ---------------------------------------------------------
 if query:
 
     answer, explanation, status = process_query(query)
@@ -269,14 +162,7 @@ if query:
         st.error("FAIL")
 
 
-# ---------------------------------------------------------
-# Evaluation Criteria
-# ---------------------------------------------------------
 st.subheader("📋 Evaluation Criteria")
-
-st.write(
-    "The system is evaluated based on:"
-)
 
 st.write("✔ Query understanding")
 st.write("✔ Correct result")
@@ -285,9 +171,6 @@ st.write("✔ Clear explanation")
 st.write("✔ Correct measurement unit")
 
 
-# ---------------------------------------------------------
-# Suggested Test Queries
-# ---------------------------------------------------------
 st.subheader("🧪 Suggested Test Queries")
 
 st.write("1. What is the predicted peak consumption?")
@@ -298,5 +181,4 @@ st.write("5. What is the lowest power consumption?")
 st.write("6. What is the average voltage?")
 st.write("7. What is the grid frequency?")
 st.write("8. What is the current grid status?")
-st.write("9. What is the latest power consumption?")
 ```
